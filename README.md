@@ -1,6 +1,6 @@
 # AT-Bench
 
-AT-Bench is an acceptance-test toolset for a SLURM HPC cluster, developed by the HPC Technologies Group at C-DAC Pune. It submits GROMACS, NAMD, OpenFOAM, and WRF jobs across the cluster and verifies the results — run directly on demand, or automated on whatever schedule is required (for example, via cron) — and provides diagnostic tooling to pinpoint which specific nodes are responsible for slow or failed jobs, including a benchmark-based diagnosis (HPL, STREAM, OSU) of suspect hardware.
+AT-Bench is an acceptance-test toolset for a HPC cluster, developed by the HPC Technologies Group at C-DAC Pune. It submits GROMACS, NAMD, OpenFOAM, and WRF jobs across the cluster and verifies the results — run directly on demand, or automated on whatever schedule is required (for example, via cron) — and provides diagnostic tooling to pinpoint which specific nodes are responsible for slow or failed jobs, including a benchmark-based diagnosis (HPL, STREAM, OSU) of suspect hardware.
 
 The configuration values documented below reflect the cluster on which this toolset was developed and is currently in use. When deploying on a different cluster, treat these values as examples to replace, not as fixed requirements.
 
