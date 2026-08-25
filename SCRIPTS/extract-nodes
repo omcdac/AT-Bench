@@ -1,0 +1,185 @@
+#!/bin/bash
+#
+# Author: Om Jadhav, HPC Technologies Group, C-DAC Pune
+#
+# Usage:
+#    ./extract-nodes summary.txt [output_dir]
+#
+# output_dir defaults to the summary file's own directory. Output files
+# are prefixed with the summary file's basename (e.g. gromacs.txt ->
+# gromacs-success-nodes.txt) so multiple apps can write into the same
+# output_dir without clobbering each other.
+#
+# For each category (success / slow / failed) produces two files:
+#    <prefix>-<category>-nodes-by-job.txt   one line per job:
+#                                            "JOBID: node1,node2,..."
+#    <prefix>-<category>-nodes.txt          one clean deduped
+#                                            comma-separated node list,
+#                                            ready to paste into
+#                                            --nodelist= or --exclude=
+#
+# Note: verify-results.sh scripts label the "not within range" section
+# either "B.SLOW JOBS" or "B.UNSUCCESSFULL JOBS", and the "no output"
+# section either "C.INCOMPLETE JOBS" or "C.UNSUCCESFULL JOBS" (namd,
+# hpl), depending on which benchmark/version wrote the summary. All
+# variants of a section are treated the same regardless of label.
+#
+# Summary files accumulate one block per cron run, so a single file can
+# contain tens of thousands of Nodelist entries. Node lists are expanded
+# in one batched `scontrol show hostnames` call (not one call per job) to
+# keep this fast at that scale.
+#
+
+# Every generated file gets this as a "#"-prefixed first line (comment
+# syntax so it can't be mistaken for real data): a "#" line is filtered out
+# by every downstream reader of these files (run-verification.sh's Section
+# 1b combine step, atbench_analyzer.py's read_node_counts) before they
+# parse the actual comma-separated node list on the line(s) after it.
+DISCLAIMER="Disclaimer: Internal testing, not publication ready. Contact: omjadhav@cdac.in"
+
+if [ $# -lt 1 ] || [ $# -gt 2 ]; then
+    echo "Usage: $0 <summary_file> [output_dir]"
+    exit 1
+fi
+
+INPUT="$1"
+OUTDIR="${2:-$(dirname "$INPUT")}"
+
+if [ ! -f "$INPUT" ]; then
+    echo "Error: summary file '$INPUT' not found" >&2
+    exit 1
+fi
+
+mkdir -p "$OUTDIR"
+
+PREFIX=$(basename "$INPUT")
+PREFIX="${PREFIX%.*}"
+
+WORKDIR=$(mktemp -d)
+trap 'rm -rf "$WORKDIR"' EXIT
+
+TOKENS="$WORKDIR/tokens.tsv"
+UNIQ_HOSTLISTS="$WORKDIR/uniq_hostlists.txt"
+RAW_EXPANDED="$WORKDIR/raw_expanded.txt"
+EXPANDED_PER_HOSTLIST="$WORKDIR/expanded_per_hostlist.txt"
+LOOKUP="$WORKDIR/hostlist_lookup.tsv"
+
+# 1. Walk the summary file once, tagging each "JOBID(Nodelist:hostlist)"
+#    token with which section (success/slow/failed) it fell in.
+awk '
+    /A\.SUCCESSFULL JOBS/                  { section="success"; next }
+    /B\.(SLOW|UNSUCCESSFULL) JOBS/         { section="slow"; next }
+    /C\.(INCOMPLETE|UNSUCCESFULL) JOBS/    { section="failed"; next }
+    /^%%%%/                          { section=""; next }
+    section == "" { next }
+    {
+        line = $0
+        while (match(line, /[0-9]*\(Nodelist:[^)]*\)/)) {
+            tok = substr(line, RSTART, RLENGTH)
+            paren = index(tok, "(Nodelist:")
+            jobid = substr(tok, 1, paren - 1)
+            hostlist = substr(tok, paren + length("(Nodelist:"))
+            sub(/\)$/, "", hostlist)
+            if (hostlist != "") {
+                if (jobid == "") jobid = "UNKNOWN"
+                print section "\t" jobid "\t" hostlist
+            }
+            line = substr(line, RSTART + RLENGTH)
+        }
+    }
+' "$INPUT" > "$TOKENS"
+
+if [ ! -s "$TOKENS" ]; then
+    echo "No Nodelist entries found in $INPUT"
+    exit 0
+fi
+
+# 2. Expand every distinct hostlist expression via scontrol, batched in
+#    chunks (scontrol/the shell here rejects a single argument built from
+#    all ~10k+ entries at once, well before the shell's own ARG_MAX).
+cut -f3 "$TOKENS" | sort -u > "$UNIQ_HOSTLISTS"
+
+CHUNK_PREFIX="$WORKDIR/chunk_"
+split -l 1000 -d -a 4 "$UNIQ_HOSTLISTS" "$CHUNK_PREFIX"
+
+: > "$RAW_EXPANDED"
+first=1
+for chunkfile in "$CHUNK_PREFIX"*; do
+    if [ "$first" -eq 1 ]; then
+        first=0
+    else
+        echo "SEP" >> "$RAW_EXPANDED"
+    fi
+    JOINED=$(awk '{printf "%s%s", (NR>1 ? ",SEP," : ""), $0}' "$chunkfile")
+    if ! scontrol show hostnames "$JOINED" >> "$RAW_EXPANDED"; then
+        echo "extract-nodes: ERROR: scontrol show hostnames failed on a chunk of $(wc -l < "$chunkfile") hostlist(s) -- aborting instead of risking a desynced node/job mapping for every hostlist after this point." >&2
+        exit 1
+    fi
+done
+
+awk '
+    /^SEP$/ { print buf; buf=""; next }
+    { buf = (buf == "" ? $0 : buf "," $0) }
+    END { print buf }
+' "$RAW_EXPANDED" > "$EXPANDED_PER_HOSTLIST"
+
+# scontrol expands each chunk in one shot; if its output ever comes back
+# with a different line count than what went in (partial failure, unexpected
+# hostlist syntax slipping through), a plain `paste` would silently zip
+# every entry after that point to the wrong hostlist -- catch it here
+# instead of producing a wrong-but-plausible-looking node list.
+UNIQ_COUNT=$(wc -l < "$UNIQ_HOSTLISTS")
+EXPANDED_COUNT=$(wc -l < "$EXPANDED_PER_HOSTLIST")
+if [ "$UNIQ_COUNT" -ne "$EXPANDED_COUNT" ]; then
+    echo "extract-nodes: ERROR: expanded-hostlist count ($EXPANDED_COUNT) doesn't match unique-hostlist count ($UNIQ_COUNT) -- scontrol output desynced from input, aborting rather than risk misattributing nodes to the wrong job." >&2
+    exit 1
+fi
+
+paste -d'\t' "$UNIQ_HOSTLISTS" "$EXPANDED_PER_HOSTLIST" > "$LOOKUP"
+
+# 3. Join tokens back to their expanded node list and fan out into the
+#    per-category by-job and master files.
+awk -F'\t' -v outdir="$OUTDIR" -v prefix="$PREFIX" '
+    NR==FNR { lookup[$1]=$2; next }
+    {
+        section=$1; jobid=$2; hostlist=$3
+        expanded = lookup[hostlist]
+        if (expanded == "") next
+
+        byjobfile = outdir "/" prefix "-" section "-nodes-by-job.txt"
+        print jobid ": " expanded > byjobfile
+
+        n = split(expanded, arr, ",")
+        for (i = 1; i <= n; i++) {
+            key = section SUBSEP arr[i]
+            if (!(key in seen)) {
+                seen[key] = 1
+                print arr[i] > (outdir "/" prefix "-" section "-nodes-raw.txt")
+            }
+        }
+    }
+' "$LOOKUP" "$TOKENS"
+
+for category in success slow failed; do
+    byjobfile="$OUTDIR/${PREFIX}-${category}-nodes-by-job.txt"
+    rawfile="$OUTDIR/${PREFIX}-${category}-nodes-raw.txt"
+    masterfile="$OUTDIR/${PREFIX}-${category}-nodes.txt"
+
+    [ -f "$byjobfile" ] || : > "$byjobfile"
+    if [ -f "$rawfile" ]; then
+        sort -u "$rawfile" | paste -sd, - > "$masterfile"
+        rm -f "$rawfile"
+    else
+        : > "$masterfile"
+    fi
+
+    for f in "$byjobfile" "$masterfile"; do
+        { echo "# $DISCLAIMER"; cat "$f"; } > "$f.tmp" && mv "$f.tmp" "$f"
+    done
+done
+
+echo
+echo "Generated in $OUTDIR:"
+echo "  ${PREFIX}-success-nodes-by-job.txt / ${PREFIX}-success-nodes.txt"
+echo "  ${PREFIX}-slow-nodes-by-job.txt    / ${PREFIX}-slow-nodes.txt"
+echo "  ${PREFIX}-failed-nodes-by-job.txt  / ${PREFIX}-failed-nodes.txt"

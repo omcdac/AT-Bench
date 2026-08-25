@@ -1,0 +1,32 @@
+# SRC/ is ~25G (WRF alone is ~18G, dominated by one restart file, plus large
+# GROMACS/NAMD/OpenFOAM input data and binaries). Too large for GitHub and
+# mostly data, not code -- backed up separately and downloaded before first
+# run. See README.md for the download/restore instructions.
+SRC/
+
+# Nightly cron output: verification/submission logs, per-date node lists,
+# debug reports, generated charts. Regenerated fresh on every run, grows
+# without bound, and isn't needed to run the setup on a new system -- not
+# source code, so not version-controlled. Back these up separately (outside
+# git) if historical run data itself needs preserving.
+LOGS/
+CRON/Verification/LOGS/
+CRON/Verification/cron-job-verification-logs/
+CRON/Jobsubmission/cron-job-submission-logs/
+CRON/graph/*.png
+
+# Per-run verification state files: each verify-results.sh rm's and
+# regenerates these at the start of every run (see e.g.
+# gromacs-verify-results.sh's cleanup block) -- pure runtime state, not
+# something to commit. Same pattern also appears one level deeper under
+# SCRIPTS/debug/faulti-node-detection/{1N,2N}/ (an older, standalone
+# fault-detection tool with its own copies of the same verify scripts), so
+# matched by filename at any depth rather than one fixed path.
+**/SuccesfullJobIDs
+**/FailedJobIDs
+**/FileNotExistsJobIDs
+**/ResultOutOffRengeJobIDs
+
+# Python bytecode cache
+__pycache__/
+*.pyc

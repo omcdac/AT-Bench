@@ -1,0 +1,64 @@
+#!/bin/bash
+
+export MainDir=$PWD
+
+export OUTDIR=/home/cdacappadmin/OM/NODE-Test
+
+# Job script parameters
+export JobPartition=standard
+export NODELIST="/home/cdacappadmin/OM/AT-Bench/nodes"
+
+echo "******************************"
+echo "*      Welcome to AT         *"
+echo "*           Tool             *"
+echo "******************************"
+echo ""
+echo "Let's test the cluster and identify the node health !"
+echo ""
+
+echo "Please select the appropriate choice"
+echo "1. To submit test jobs on the given list of nodes"
+echo "2. To verify the results to detect faulty nodes"
+echo ""
+read -p "" select
+echo ""
+
+if [ $select == 1 ];then
+	#Job Submission
+        echo ""
+	echo "Select: 1 Node test or 2 Node test"
+	read -p "" test
+	if [ $test == 1 ];then
+		echo "Please wait, Job submission will start soon..."
+                sleep 2
+                source $MainDir/SCRIPTS/debug/faulti-node-detection/1N/1n-job-submit.sh
+        elif [ $test == 2 ];then
+		echo "Please wait, Job submission will start soon..."
+        	sleep 2
+        	source $MainDir/SCRIPTS/debug/faulti-node-detection/2N/2n-job-submit.sh
+	else
+		echo "Invalid choice!"
+        	echo ""
+	fi
+elif [ $select == 2 ];then
+	#Job Verification
+        echo ""
+        echo "Select: 1 Node test or 2 Node test"
+        read -p "" test
+        if [ $test == 1 ];then
+                echo "Please wait, Job verification will start soon..."
+                sleep 2
+                source $MainDir/SCRIPTS/debug/faulti-node-detection/1N/namd-verify-results.sh | tee -a $MainDir/LOGS/nodeTest/1nodeTest.`date "+%F-%T"`.txt
+        elif [ $test == 2 ];then
+                echo "Please wait, Job verification will start soon..."
+                sleep 2
+                source $MainDir/SCRIPTS/debug/faulti-node-detection/2N/namd-verify-results.sh | tee -a $MainDir/LOGS/nodeTest/2nodeTest.`date "+%F-%T"`.txt
+        else
+                echo "Invalid choice!"
+                echo ""
+        fi
+else
+        echo "Invalid choice!"
+        echo ""
+fi
+
