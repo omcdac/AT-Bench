@@ -1,11 +1,21 @@
 # AT-Bench
 
-Acceptance-test harness for a SLURM HPC cluster (C-DAC Pune, HPC Technologies
-Group). Runs GROMACS, NAMD, OpenFOAM, and WRF jobs nightly across the
-cluster, verifies results the next morning, and provides debug/diagnostic
-tooling to pin down which specific nodes are causing slow or failed jobs.
+Acceptance-test harness I built for our SLURM cluster here at C-DAC Pune
+(HPC Technologies Group). It runs GROMACS, NAMD, OpenFOAM, and WRF jobs
+across the cluster every night, verifies the results the next morning, and
+gives me tooling to track down exactly which nodes are causing slow or
+failed jobs, down to a benchmark-backed diagnosis (HPL/STREAM/OSU) of the
+suspect hardware.
 
-Author: Om Jadhav (omjadhav@cdac.in)
+I've tested and run this on our own cluster, so a few values in here are
+specific to that environment. If you're setting this up on a different
+cluster, treat those as examples to replace rather than requirements --
+they're called out below.
+
+Author: Om Jadhav, HPC Technologies Group, C-DAC Pune (omjadhav@cdac.in)
+
+For the day-to-day commands (how to actually run/submit/verify/diagnose),
+see [HOW_TO_USE.md](HOW_TO_USE.md). This file is about layout and setup.
 
 ## Repo layout
 
@@ -26,10 +36,11 @@ LOGS/, CRON/*/LOGS/, CRON/*/cron-job-*-logs/   Runtime output -- not in git
 
 ## SRC/ is not in this repo
 
-`SRC/` is ~25G (WRF alone is ~18G, mostly one restart file) and is data, not
-code, so it's excluded here (see `.gitignore`) and distributed separately.
+`SRC/` is ~25G on my end (WRF alone is ~18G, mostly one restart file) --
+too large for GitHub, and it's data/binaries rather than code, so I'm
+keeping it out of git and distributing it separately.
 
-**Before running anything on a new checkout:**
+**Before running anything on a fresh checkout:**
 
 1. Download the SRC archive: **`<TODO: paste the Google Drive (or other
    storage) link here once SRC/ has been uploaded>`**
@@ -38,52 +49,42 @@ code, so it's excluded here (see `.gitignore`) and distributed separately.
    tar -xzf SRC.tar.gz -C /path/to/AT-Bench/
    ```
 
-## Setting this up on a new cluster
+## Setting this up on a different cluster
 
-This harness was written for one specific cluster and has cluster-specific
-values baked into it in a few places. None of this is a design flaw to fix
-before using it elsewhere -- it's genuinely cluster-specific and has to be
-re-supplied. In the order you'll hit them:
+Here's everything I have pinned to our specific environment, in the order
+you'll run into it:
 
 1. **Spack environment paths.** Every app's `SRC/<APP>/input/setup.sh` (or
-   `env.sh`) sources hash-pinned Spack install paths (Intel oneAPI compiler/
-   MPI/MKL, MVAPICH, OpenFOAM, METIS, SCOTCH). These hashes are unique to
-   this machine's Spack build tree and will not exist anywhere else, even
-   with identical package versions installed. Rebuild/locate the equivalent
-   packages on the new system and update each `setup.sh`/`env.sh` file
-   accordingly (`grep -rn 'spack/opt/spack' SRC/` finds all of them once
-   SRC/ is restored).
-2. **SLURM reservation name and partitions.** `workingcpunodes` is a SLURM
-   reservation this cluster's admins use to scope jobs to healthy nodes; the
-   real partition is `cpu` (plus `gpu`/`hm`/`hpl02` for other node classes).
-   These are centralized in **one place**:
-   `CRON/Jobsubmission/run-jobsubmission.sh`'s CONFIGURATION block at the
-   top (`*_RESERVATION`, `*_PARTITION`, `*_NUM_JOBS`, `BASE_OUTDIR`) --
-   edit only there. `SCRIPTS/diagnose-nodes.sh`'s `DIAGNOSE_RESERVATION`
+   `env.sh`) sources our Spack install paths (Intel oneAPI compiler/MPI/MKL,
+   MVAPICH, OpenFOAM, METIS, SCOTCH), and those paths are hash-pinned to our
+   own Spack build tree -- they won't exist on your system even if you
+   install the identical package versions. Build or locate the equivalent
+   packages on your cluster and point each `setup.sh`/`env.sh` at them
+   (`grep -rn 'spack/opt/spack' SRC/` finds every one of them once `SRC/` is
+   restored).
+2. **SLURM reservation name and partitions.** `workingcpunodes` is the
+   reservation our admins use to scope jobs to healthy nodes; our real
+   partition is `cpu` (plus `gpu`/`hm`/`hpl02` for other node classes on our
+   cluster). I centralized all of this in **one place** so you only have to
+   edit it once: `CRON/Jobsubmission/run-jobsubmission.sh`'s CONFIGURATION
+   block at the top (`*_RESERVATION`, `*_PARTITION`, `*_NUM_JOBS`,
+   `BASE_OUTDIR`). `SCRIPTS/diagnose-nodes.sh`'s `DIAGNOSE_RESERVATION`
    (env-overridable) needs the same update.
 3. **`module load miniconda`** (in `run-verification.sh` and
-   `diagnose-nodes.sh`) assumes a module of that exact name. Point it at
-   whatever provides Python 3 + matplotlib on the new system.
-4. **`MainDir`.** Every CRON script exports `MainDir=/home/nsmapplication/cdacapp01/AT-Bench`
-   at the top -- update to wherever this repo actually lives.
-5. **Crontab.** The crontab itself is not part of this repo and won't
-   transfer with a `git clone`. Re-add both lines on the new system:
+   `diagnose-nodes.sh`) is what gives us Python 3 + matplotlib on our
+   cluster. Point it at whatever module (or plain `source venv/bin/activate`,
+   if you'd rather) provides that on yours.
+4. **`MainDir`.** Every CRON script exports
+   `MainDir=/home/nsmapplication/cdacapp01/AT-Bench` at the top -- change it
+   to wherever you've actually cloned this repo.
+5. **Crontab.** The crontab itself isn't part of this repo and won't come
+   along with `git clone` -- add these two lines yourself once `MainDir` is
+   set:
    ```
    45 0 * * * LOGDIR="<MainDir>/CRON/Jobsubmission/cron-job-submission-logs/$(date +\%d\%B\%Y)"; mkdir -p "$LOGDIR"; <MainDir>/CRON/Jobsubmission/run-jobsubmission.sh >> "$LOGDIR/JobSubmission.log" 2>&1
    0 9 * * * LOGDIR="<MainDir>/CRON/Verification/cron-job-verification-logs/$(date +\%d\%B\%Y)"; mkdir -p "$LOGDIR"; <MainDir>/CRON/Verification/run-verification.sh >> "$LOGDIR/Verification.log" 2>&1
    ```
-6. **`SCRIPTS/fault-detection`** references an old, different path
-   (`/home/cdacappadmin/OM/...`) and `JobPartition=standard` -- this looks
-   like a stale leftover from an earlier environment, not part of the
-   current pipeline. Confirm whether it's still needed before relying on it.
-
-## Day-to-day operation
-
-- **Nightly, automated:** `run-jobsubmission.sh` (00:45) submits jobs;
-  `run-verification.sh` (09:00) verifies the previous night's results,
-  builds cluster-wide success/slow/failed node lists, and runs the debug
-  analyzer.
-- **On demand:** `SCRIPTS/diagnose-nodes.sh [date] [--limit N] [--nodes-dir DIR] [--timeout SECONDS]`
-  runs single-node HPL/STREAM and reference-vs-candidate OSU on the
-  slow/failed nodes a verification run identified, to pin down genuine
-  hardware culprits. Not cron-wired -- run manually when investigating.
+6. **`SCRIPTS/fault-detection`** points at an old path of mine
+   (`/home/cdacappadmin/OM/...`) and `JobPartition=standard` from an earlier
+   setup -- I don't rely on it day-to-day anymore. Check it over before you
+   use it.
