@@ -3,8 +3,9 @@ AT-BENCH
 
 AT-Bench is an acceptance-test harness for a SLURM HPC cluster, developed
 by the HPC Technologies Group at C-DAC Pune. It submits GROMACS, NAMD,
-OpenFOAM, and WRF jobs across the cluster on a nightly schedule, verifies
-the results the following morning, and provides diagnostic tooling to
+OpenFOAM, and WRF jobs across the cluster and verifies the results,
+either run directly on demand or automated on whatever schedule is
+required (for example, via cron), and provides diagnostic tooling to
 identify which specific nodes are responsible for slow or failed jobs,
 including a benchmark-based diagnosis (HPL, STREAM, OSU) of suspect
 hardware.
@@ -24,10 +25,10 @@ file covers repository layout and cluster setup.
 REPOSITORY LAYOUT
 ------------------
 
-  CRON/Jobsubmission/       Nightly job-submission cron entry point and
-                            per-application configuration
-  CRON/Verification/        Morning verification cron entry point and
-                            per-application wrappers
+  CRON/Jobsubmission/       Job-submission entry point (cron-compatible)
+                            and per-application configuration
+  CRON/Verification/        Verification entry point (cron-compatible)
+                            and per-application wrappers
   CRON/graph/               Cluster-wide analysis charts
                             (atbench_analyzer.py)
   SCRIPTS/jobSubmission/    Per-application SLURM submission workers
@@ -110,11 +111,15 @@ are likely to be encountered:
      MainDir=/home/nsmapplication/cdacapp01/AT-Bench near the top of the
      file. Update this to the actual path of the cloned repository.
 
-  5. Crontab
+  5. Crontab (optional)
 
-     The crontab itself is not part of this repository and is not
-     transferred by a git clone. Add the following two entries once
-     MainDir has been set:
+     run-jobsubmission.sh and run-verification.sh do not require cron;
+     either can be invoked directly at any time (see HOW_TO_USE). Cron is
+     only needed if the pipeline should run on a recurring schedule
+     without manual invocation. The crontab itself is not part of this
+     repository and is not transferred by a git clone. An example
+     schedule, once MainDir has been set, adjusted to whatever timing is
+     required:
 
        45 0 * * * LOGDIR="<MainDir>/CRON/Jobsubmission/cron-job-submission-logs/$(date +\%d\%B\%Y)"; mkdir -p "$LOGDIR"; <MainDir>/CRON/Jobsubmission/run-jobsubmission.sh >> "$LOGDIR/JobSubmission.log" 2>&1
        0 9 * * * LOGDIR="<MainDir>/CRON/Verification/cron-job-verification-logs/$(date +\%d\%B\%Y)"; mkdir -p "$LOGDIR"; <MainDir>/CRON/Verification/run-verification.sh >> "$LOGDIR/Verification.log" 2>&1
@@ -123,4 +128,4 @@ are likely to be encountered:
 
      References an older path (/home/cdacappadmin/OM/...) and
      JobPartition=standard from a previous environment. It is not part
-     of the current nightly pipeline and should be reviewed before use.
+     of the current pipeline and should be reviewed before use.

@@ -7,25 +7,24 @@ repository layout and cluster-specific setup.
 "<MainDir>" below refers to the directory the repository is cloned into.
 
 
-1. AUTOMATED NIGHTLY PIPELINE
--------------------------------
+1. RUNNING JOB SUBMISSION AND VERIFICATION
+---------------------------------------------
 
-Once the crontab described in README is in place, the pipeline runs
-without manual intervention:
-
-  00:45   CRON/Jobsubmission/run-jobsubmission.sh submits the night's
-          GROMACS, NAMD, OpenFOAM, and WRF jobs, using the job counts and
-          reservation/partition set in its CONFIGURATION block.
-
-  09:00   CRON/Verification/run-verification.sh verifies the previous
-          night's results, builds cluster-wide success/slow/failed node
-          lists, and runs the debug analyzer.
-
-These are not normally run by hand. To trigger either manually (for
-example, to re-run verification or test a configuration change):
+The pipeline consists of two scripts, run directly whenever needed:
 
     <MainDir>/CRON/Jobsubmission/run-jobsubmission.sh
+        Submits GROMACS, NAMD, OpenFOAM, and WRF jobs, using the job
+        counts and reservation/partition set in its CONFIGURATION block.
+
     <MainDir>/CRON/Verification/run-verification.sh
+        Verifies the results of a completed submission run, builds
+        cluster-wide success/slow/failed node lists, and runs the debug
+        analyzer.
+
+Neither script requires cron; both can be run directly, at any time, as
+shown above. Cron is one option for running them on a recurring
+schedule without manual invocation, at whatever interval or times suit
+the deployment (an example schedule is given in README).
 
 
 2. OUTPUT LOCATIONS
@@ -49,8 +48,8 @@ For a given run date DDMonthYYYY (for example, 25August2026):
 3. SUBMITTING OR VERIFYING A SINGLE APPLICATION
 --------------------------------------------------
 
-To submit or verify a single application outside the nightly sweep, use
-the interactive menus:
+To submit or verify a single application outside a full submission or
+verification run, use the interactive menus:
 
     ./JobSubmission.sh     select 1-4 for NAMD, GROMACS, OPENFOAM, WRF
     ./atVerify.sh           select 1-5 for NAMD, GROMACS, OPENFOAM, WRF, HPL
@@ -113,8 +112,8 @@ output-dir, with the prefix derived from the input filename.
 
 job_debug_analyzer.py classifies why a batch of jobs failed (IB faults,
 environment errors, timeouts, segfaults, and so on) rather than simply
-counting failures. The nightly pipeline invokes this automatically in
-targeted mode against the night's failed-jobs.txt. To run it directly
+counting failures. run-verification.sh invokes this automatically in
+targeted mode against that run's failed-jobs.txt. To run it directly
 against an arbitrary run directory:
 
     python3 <MainDir>/SCRIPTS/debug/job_debug_analyzer.py --run-dir /path/to/a/run/dir --output-dir /path/to/write/report/to
