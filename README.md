@@ -71,9 +71,10 @@ Before running the harness on a fresh checkout:
 CLUSTER-SPECIFIC SETUP
 ------------------------
 
-The following values are specific to the cluster this harness currently
-runs on and must be adapted when deploying elsewhere, in the order they
-are likely to be encountered:
+The following items are specific to the cluster this harness currently
+runs on. They will likely need to be modified to match the target
+cluster's own configuration before the harness will run correctly there,
+in the order they are likely to be encountered:
 
   1. Spack environment paths
 
