@@ -1,12 +1,12 @@
 # AT-Bench
 
-AT-Bench is an acceptance-test harness for a SLURM HPC cluster, developed by the HPC Technologies Group at C-DAC Pune. It submits GROMACS, NAMD, OpenFOAM, and WRF jobs across the cluster and verifies the results — either run directly on demand or automated on whatever schedule is required (for example, via cron) — and provides diagnostic tooling to identify which specific nodes are responsible for slow or failed jobs, including a benchmark-based diagnosis (HPL, STREAM, OSU) of suspect hardware.
+AT-Bench is an acceptance-test toolset for a SLURM HPC cluster, developed by the HPC Technologies Group at C-DAC Pune. It submits GROMACS, NAMD, OpenFOAM, and WRF jobs across the cluster and verifies the results — run directly on demand, or automated on whatever schedule is required (for example, via cron) — and provides diagnostic tooling to pinpoint which specific nodes are responsible for slow or failed jobs, including a benchmark-based diagnosis (HPL, STREAM, OSU) of suspect hardware.
 
-The configuration values documented below reflect the cluster on which this harness was developed and is currently in use. When deploying on a different cluster, treat these values as examples to replace, not as fixed requirements.
+The configuration values documented below reflect the cluster on which this toolset was developed and is currently in use. When deploying on a different cluster, treat these values as examples to replace, not as fixed requirements.
 
 | | |
 |---|---|
-| **Author**  | Om Jadhav, HPC Technologies Group, C-DAC Pune |
+| **Developed by** | Om Jadhav, HPC Technologies Group, C-DAC Pune |
 | **Contact** | omjadhav@cdac.in |
 
 > Day-to-day usage commands are documented separately in **[HOW_TO_USE.md](HOW_TO_USE.md)**. This file covers repository layout and cluster setup.
@@ -37,7 +37,7 @@ The configuration values documented below reflect the cluster on which this harn
 
 `SRC/` is approximately 25 GB (WRF alone accounts for roughly 18 GB, mostly a single restart file). It consists of application inputs and binaries rather than source code, and is excluded from this repository (see `.gitignore`) and distributed separately.
 
-Before running the harness on a fresh checkout:
+Before running this toolset on a fresh checkout:
 
 1. **Download the SRC archive** from:
    `<TODO: storage link to be added once SRC/ has been uploaded>`
@@ -50,7 +50,7 @@ Before running the harness on a fresh checkout:
 
 ## Cluster-specific setup
 
-The following items are specific to the cluster this harness currently runs on. They will likely need to be modified to match the target cluster's own configuration before the harness will run correctly there, in the order they are likely to be encountered:
+The following items are specific to the cluster this toolset currently runs on. They will likely need to be modified to match the target cluster's own configuration before it will run correctly there, in the order they are likely to be encountered:
 
 ### 1. Spack environment paths
 
