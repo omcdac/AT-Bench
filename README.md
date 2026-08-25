@@ -87,6 +87,3 @@ re-supplied. In the order you'll hit them:
   runs single-node HPL/STREAM and reference-vs-candidate OSU on the
   slow/failed nodes a verification run identified, to pin down genuine
   hardware culprits. Not cron-wired -- run manually when investigating.
-- Every generated text/CSV/PNG carries a
-  `Disclaimer: Internal testing, not publication ready. Contact: omjadhav@cdac.in`
-  line/footer.
