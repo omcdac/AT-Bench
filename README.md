@@ -6,8 +6,7 @@ The configuration values documented below reflect the cluster on which this tool
 
 | | |
 |---|---|
-| **Developed by** | Om Jadhav, HPC Technologies Group, C-DAC Pune |
-| **Contact** | omjadhav@cdac.in |
+| **Contact** | Om Jadhav, HPC Technologies Group, C-DAC Pune — omjadhav@cdac.in |
 
 > Day-to-day usage commands are documented separately in **[HOW_TO_USE.md](HOW_TO_USE.md)**. This file covers repository layout and cluster setup.
 
