@@ -21,7 +21,7 @@
 # file it grew into, this fix stops it growing at all). See the
 # equivalent note in namd-verify-results.sh for the full rationale.
 # Results CSV now lands under a dated subfolder
-# (LOGS/wrf-logs/<DDMonthYYYY>/) when $TODAY is set by the CRON wrapper,
+# (LOGS/wrf-logs/<DDMonthYYYY>/) when $TODAY is set by the calling wrapper,
 # falling back to the flat path for manual atVerify.sh runs.
 # =============================================================================
 
@@ -30,7 +30,7 @@
 #job_ids_file="$MainDir/LOGS/JobIDs/WRF_JobIDs.txt"
 job_ids_file="$OUTDIR/WRF/WRF_JobIDs.txt"
 ## For CSV file results
-# Define the CSV file (dated subfolder when the CRON wrapper sets $TODAY,
+# Define the CSV file (dated subfolder when the calling wrapper sets $TODAY,
 # flat path for manual atVerify.sh runs where $TODAY is unset)
 if [ -n "$TODAY" ]; then
     mkdir -p "$MainDir/LOGS/wrf-logs/$TODAY"

@@ -6,7 +6,7 @@ job_debug_analyzer.py
 AT-Bench Job Debug / Fault Analyzer for C-DAC HPC Application Runs
 --------------------------------------------------------------------
 
-Where atbench_analyzer.py (CRON/graph/) summarizes the *numbers*
+Where atbench_analyzer.py (Workflow/graph/) summarizes the *numbers*
 verify-results.sh already computed (successful / slow / incomplete counts
 from a day's LOGS), this tool goes one level deeper: it reads the RAW per-job
 output directories directly (SLURM .err files, app logs, WRF per-rank rsl
@@ -943,7 +943,7 @@ def plot_overall_stats(all_results: Dict[str, AppResult], output_path: Path,
     """Pure error composition: only real, identified failure types
     (FAILURE_CATEGORIES) -- no OK, no SLOW, no NO_OUTPUT_YET. Those three
     are job STATUSES, not errors -- overall success/slow/failed counts are
-    already covered by the verification-side plot (CRON/graph/
+    already covered by the verification-side plot (Workflow/graph/
     atbench_analyzer.py), so this tool stays focused on its actual job:
     what exactly failed, and how often."""
     run_label = run_label or datetime.now().strftime("%d %B %Y")

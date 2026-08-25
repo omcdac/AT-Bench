@@ -4,7 +4,7 @@
 #===========================================================
 #
 # On-demand suspect-node diagnostic. Reads a day's already-computed
-# CRON/Verification/LOGS/<date>/nodes/{slow,failed}-nodes.txt and
+# Workflow/Verification/LOGS/<date>/nodes/{slow,failed}-nodes.txt and
 # debug/job_debug_records.csv (both from run-verification.sh), filters
 # down to nodes plausibly worth re-testing (see node_diagnose.py select),
 # then runs single-node HPL + STREAM on every candidate (plus the
@@ -22,7 +22,7 @@
 #
 # date defaults to today (format: DDMonthYYYY, e.g. 10August2026), and must
 # already have a completed run-verification.sh pass (i.e.
-# CRON/Verification/LOGS/<date>/nodes/ must exist) unless --nodes-dir is
+# Workflow/Verification/LOGS/<date>/nodes/ must exist) unless --nodes-dir is
 # given instead.
 #
 # --limit N caps how many candidate nodes actually get submitted (the first
@@ -31,7 +31,7 @@
 # list. Omit it to run the full candidate list.
 #
 # --nodes-dir DIR picks which nodes/ directory candidates are selected
-# from, instead of the default CRON/Verification/LOGS/<date>/nodes -- e.g.
+# from, instead of the default Workflow/Verification/LOGS/<date>/nodes -- e.g.
 # to diagnose against a hand-picked or backed-up node list that doesn't
 # live under the usual dated LOGS tree. debug/, diagnose/ and the scratch
 # run dir still follow <date> as usual.
@@ -52,7 +52,7 @@ set -uo pipefail
 MainDir=/home/nsmapplication/cdacapp01/AT-Bench
 DISCLAIMER="Disclaimer: Internal testing, not publication ready. Contact: omjadhav@cdac.in"
 
-# Same pattern/rationale as CRON/Jobsubmission/run-jobsubmission.sh's
+# Same pattern/rationale as Workflow/Jobsubmission/run-jobsubmission.sh's
 # *_RESERVATION vars: most cbcn nodes (confirmed live 2026-08-10: 1669 of
 # ~2906) sit inside the "workingcpunodes" reservation SLURM admins use to
 # scope jobs to nodes considered healthy -- a plain sbatch with no
@@ -79,9 +79,9 @@ done
 [ -f /etc/profile.d/modules.sh ] && source /etc/profile.d/modules.sh
 module load miniconda
 
-NODES_DIR="${NODES_DIR_OVERRIDE:-$MainDir/CRON/Verification/LOGS/$TODAY/nodes}"
-DEBUG_DIR="$MainDir/CRON/Verification/LOGS/$TODAY/debug"
-REPORT_DIR="$MainDir/CRON/Verification/LOGS/$TODAY/diagnose"
+NODES_DIR="${NODES_DIR_OVERRIDE:-$MainDir/Workflow/Verification/LOGS/$TODAY/nodes}"
+DEBUG_DIR="$MainDir/Workflow/Verification/LOGS/$TODAY/debug"
+REPORT_DIR="$MainDir/Workflow/Verification/LOGS/$TODAY/diagnose"
 RUN_DIR="/home/nsmapplication/cdacapp01/scratch/AT-RUN/Diagnose/$TODAY"
 
 if [ ! -d "$NODES_DIR" ]; then

@@ -5,14 +5,14 @@
 #===========================================================
 #
 # Consolidated job-submission wrapper - the submission-side twin of
-# CRON/Verification/run-verification.sh. Submits NAMD, GROMACS, OpenFOAM
+# Workflow/Verification/run-verification.sh. Submits NAMD, GROMACS, OpenFOAM
 # and WRF in parallel (same 4 apps run-verification.sh verifies), each
 # into its own dated log file, then prints a submitted/failed count per
 # app once all four finish. One crontab entry (or one manual run) in
 # place of the 4 separate per-app entries.
 #
-# Log layout (mirrors CRON/Verification's LOGS/<app>-logs/<date>/ fix):
-#   CRON/Jobsubmission/cron-job-submission-logs/<DDMonthYYYY>/
+# Log layout (mirrors Workflow/Verification's LOGS/<app>-logs/<date>/ fix):
+#   Workflow/Jobsubmission/cron-job-submission-logs/<DDMonthYYYY>/
 #     NAMD.log  GROMACS.log  OpenFOAM.log  WRF.log   (per-app raw output)
 #     Summary.txt                                     (combined report)
 # =============================================================================
@@ -74,7 +74,7 @@ export WRF_NUM_JOBS=200
 TODAY=$(date +"%d%B%Y")
 echo "$TODAY"
 
-LOGDIR="$MainDir/CRON/Jobsubmission/cron-job-submission-logs/$TODAY"
+LOGDIR="$MainDir/Workflow/Jobsubmission/cron-job-submission-logs/$TODAY"
 mkdir -p "$LOGDIR"
 
 OUTDIR="$BASE_OUTDIR/$TODAY"
@@ -87,16 +87,16 @@ echo ""
 
 ### Section-1: Submit jobs for all 4 apps in parallel, each into its own log
 
-bash "$MainDir/CRON/Jobsubmission/NAMD.sh"    > "$LOGDIR/NAMD.log"     2>&1 &
+bash "$MainDir/Workflow/Jobsubmission/NAMD.sh"    > "$LOGDIR/NAMD.log"     2>&1 &
 pid_namd=$!
 
-bash "$MainDir/CRON/Jobsubmission/GROMACS.sh" > "$LOGDIR/GROMACS.log"  2>&1 &
+bash "$MainDir/Workflow/Jobsubmission/GROMACS.sh" > "$LOGDIR/GROMACS.log"  2>&1 &
 pid_gromacs=$!
 
-bash "$MainDir/CRON/Jobsubmission/OFM.sh"     > "$LOGDIR/OpenFOAM.log" 2>&1 &
+bash "$MainDir/Workflow/Jobsubmission/OFM.sh"     > "$LOGDIR/OpenFOAM.log" 2>&1 &
 pid_ofm=$!
 
-bash "$MainDir/CRON/Jobsubmission/WRF.sh"     > "$LOGDIR/WRF.log"      2>&1 &
+bash "$MainDir/Workflow/Jobsubmission/WRF.sh"     > "$LOGDIR/WRF.log"      2>&1 &
 pid_wrf=$!
 
 wait $pid_namd;    rc_namd=$?

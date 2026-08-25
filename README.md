@@ -25,28 +25,29 @@ file covers repository layout and cluster setup.
 REPOSITORY LAYOUT
 ------------------
 
-  CRON/Jobsubmission/       Job-submission entry point (cron-compatible)
-                            and per-application configuration
-  CRON/Verification/        Verification entry point (cron-compatible)
-                            and per-application wrappers
-  CRON/graph/               Cluster-wide analysis charts
-                            (atbench_analyzer.py)
-  SCRIPTS/jobSubmission/    Per-application SLURM submission workers
-  SCRIPTS/AT-JobSetup/      Per-application job-count and preflight setup,
-                            sourced by the submission workers
-  SCRIPTS/verification/     Per-application result-verification scripts
-                            (verify-results.sh)
-  SCRIPTS/debug/            job_debug_analyzer.py (failure classification)
-                            and node_diagnose.py
-  SCRIPTS/extract-nodes     Converts a verify-results.sh summary into
-                            plain node lists
-  SCRIPTS/diagnose-nodes.sh On-demand HPL/STREAM/OSU diagnosis of slow or
-                            failed nodes (not scheduled by cron; run
-                            manually)
-  SRC/                      Application source, inputs, and SLURM job
-                            templates (see below)
-  LOGS/, CRON/*/LOGS/,
-  CRON/*/cron-job-*-logs/   Runtime output; not tracked in this repository
+  Workflow/Jobsubmission/     Job-submission entry point (cron-compatible)
+                              and per-application configuration
+  Workflow/Verification/      Verification entry point (cron-compatible)
+                              and per-application wrappers
+  Workflow/graph/             Cluster-wide analysis charts
+                              (atbench_analyzer.py)
+  SCRIPTS/jobSubmission/      Per-application SLURM submission workers
+  SCRIPTS/AT-JobSetup/        Per-application job-count and preflight
+                              setup, sourced by the submission workers
+  SCRIPTS/verification/       Per-application result-verification
+                              scripts (verify-results.sh)
+  SCRIPTS/debug/              job_debug_analyzer.py (failure
+                              classification) and node_diagnose.py
+  SCRIPTS/extract-nodes       Converts a verify-results.sh summary into
+                              plain node lists
+  SCRIPTS/diagnose-nodes.sh   On-demand HPL/STREAM/OSU diagnosis of slow
+                              or failed nodes (not scheduled by cron;
+                              run manually)
+  SRC/                        Application source, inputs, and SLURM job
+                              templates (see below)
+  LOGS/, Workflow/*/LOGS/,
+  Workflow/*/cron-job-*-logs/ Runtime output; not tracked in this
+                              repository
 
 
 SOURCE DATA (SRC/)
@@ -94,7 +95,7 @@ are likely to be encountered:
      scope jobs to healthy nodes; the CPU partition is named "cpu" (with
      "gpu", "hm", and "hpl02" used for other node classes). These values
      are centralized in a single location:
-     CRON/Jobsubmission/run-jobsubmission.sh, in its CONFIGURATION block
+     Workflow/Jobsubmission/run-jobsubmission.sh, in its CONFIGURATION block
      at the top of the file (*_RESERVATION, *_PARTITION, *_NUM_JOBS,
      BASE_OUTDIR). SCRIPTS/diagnose-nodes.sh's DIAGNOSE_RESERVATION
      variable (environment-overridable) requires the same update.
@@ -107,7 +108,7 @@ are likely to be encountered:
 
   4. MainDir
 
-     Every CRON script exports
+     Every script under Workflow/ exports
      MainDir=/home/nsmapplication/cdacapp01/AT-Bench near the top of the
      file. Update this to the actual path of the cloned repository.
 
@@ -121,8 +122,8 @@ are likely to be encountered:
      schedule, once MainDir has been set, adjusted to whatever timing is
      required:
 
-       45 0 * * * LOGDIR="<MainDir>/CRON/Jobsubmission/cron-job-submission-logs/$(date +\%d\%B\%Y)"; mkdir -p "$LOGDIR"; <MainDir>/CRON/Jobsubmission/run-jobsubmission.sh >> "$LOGDIR/JobSubmission.log" 2>&1
-       0 9 * * * LOGDIR="<MainDir>/CRON/Verification/cron-job-verification-logs/$(date +\%d\%B\%Y)"; mkdir -p "$LOGDIR"; <MainDir>/CRON/Verification/run-verification.sh >> "$LOGDIR/Verification.log" 2>&1
+       45 0 * * * LOGDIR="<MainDir>/Workflow/Jobsubmission/cron-job-submission-logs/$(date +\%d\%B\%Y)"; mkdir -p "$LOGDIR"; <MainDir>/Workflow/Jobsubmission/run-jobsubmission.sh >> "$LOGDIR/JobSubmission.log" 2>&1
+       0 9 * * * LOGDIR="<MainDir>/Workflow/Verification/cron-job-verification-logs/$(date +\%d\%B\%Y)"; mkdir -p "$LOGDIR"; <MainDir>/Workflow/Verification/run-verification.sh >> "$LOGDIR/Verification.log" 2>&1
 
   6. SCRIPTS/fault-detection
 

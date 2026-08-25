@@ -16,7 +16,7 @@
 # LOGS/GROMACS_Summary.txt (tee -a'd forever, never rotated). See the
 # equivalent note in namd-verify-results.sh for the full rationale; same
 # fix applied here. Results CSV now lands under a dated subfolder
-# (LOGS/gromacs-logs/<DDMonthYYYY>/) when $TODAY is set by the CRON
+# (LOGS/gromacs-logs/<DDMonthYYYY>/) when $TODAY is set by the calling
 # wrapper, falling back to the flat path for manual atVerify.sh runs.
 # =============================================================================
 
@@ -25,7 +25,7 @@
 job_ids_file="$OUTDIR/GROMACS/GROMACS_JobIDs.txt"
 
 ## For CSV file results
-# Define the CSV file (dated subfolder when the CRON wrapper sets $TODAY,
+# Define the CSV file (dated subfolder when the calling wrapper sets $TODAY,
 # flat path for manual atVerify.sh runs where $TODAY is unset)
 if [ -n "$TODAY" ]; then
     mkdir -p "$MainDir/LOGS/gromacs-logs/$TODAY"

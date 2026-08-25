@@ -7,7 +7,7 @@ AT-Bench Verification Log Analyzer for C-DAC HPC Application Runs
 -------------------------------------------------------------------
 
 Analyzes a single day's AT-Bench verification LOGS directory
-(e.g. ".../AT-Bench/CRON/Verification/LOGS/04August2026") which contains,
+(e.g. ".../AT-Bench/Workflow/Verification/LOGS/04August2026") which contains,
 for each benchmarked application (GROMACS, WRF, NAMD, OpenFOAM, ...):
 
     <APP>.txt              -> per-job checker log + a machine-generated
@@ -781,7 +781,7 @@ def main() -> None:
     )
     parser.add_argument("--log-dir", required=True,
                         help="Path to the day's LOGS directory, e.g. "
-                             ".../AT-Bench/CRON/Verification/LOGS/04August2026")
+                             ".../AT-Bench/Workflow/Verification/LOGS/04August2026")
     parser.add_argument("--output-dir", required=True,
                         help="Directory to write the PNG charts into")
     parser.add_argument("--apps", nargs="*", default=None,

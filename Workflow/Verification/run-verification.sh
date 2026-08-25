@@ -5,7 +5,7 @@
 #===========================================================
 #
 # Consolidated verification wrapper - the verification-side twin of
-# CRON/Jobsubmission/run-jobsubmission.sh. Verifies NAMD, GROMACS,
+# Workflow/Jobsubmission/run-jobsubmission.sh. Verifies NAMD, GROMACS,
 # OpenFOAM and WRF in parallel, then plots the combined graphs.
 #
 # Same "one file to edit" pattern as run-jobsubmission.sh's BASE_OUTDIR:
@@ -52,10 +52,10 @@ echo "Verifying run directory: $OUTDIR"
 
 ### Section-1: Run the verification
 
-bash $MainDir/CRON/Verification/GROMACS.sh &
-bash $MainDir/CRON/Verification/NAMD.sh &
-bash $MainDir/CRON/Verification/OFM.sh &
-bash $MainDir/CRON/Verification/WRF.sh &
+bash $MainDir/Workflow/Verification/GROMACS.sh &
+bash $MainDir/Workflow/Verification/NAMD.sh &
+bash $MainDir/Workflow/Verification/OFM.sh &
+bash $MainDir/Workflow/Verification/WRF.sh &
 
 wait
 
@@ -78,7 +78,7 @@ echo "All scripts completed."
 # list by its worst observed outcome - failed beats slow beats success -
 # so success-nodes.txt, slow-nodes.txt and failed-nodes.txt never overlap.
 
-NODES_DIR="$MainDir/CRON/Verification/LOGS/$TODAY/nodes"
+NODES_DIR="$MainDir/Workflow/Verification/LOGS/$TODAY/nodes"
 
 for category in success slow failed; do
     cat "$NODES_DIR"/*-"${category}"-nodes.txt 2>/dev/null |
@@ -145,10 +145,10 @@ module load miniconda
 TODAY=$(date +"%d%B%Y")
 echo "$TODAY"
 
-LOGDIR=/home/nsmapplication/cdacapp01/AT-Bench/CRON/Verification/LOGS/$TODAY
+LOGDIR=/home/nsmapplication/cdacapp01/AT-Bench/Workflow/Verification/LOGS/$TODAY
 OUTDIR=$LOGDIR
 
-python3 $MainDir/CRON/graph/atbench_analyzer.py --log-dir "$LOGDIR"  --output-dir "$OUTDIR"
+python3 $MainDir/Workflow/graph/atbench_analyzer.py --log-dir "$LOGDIR"  --output-dir "$OUTDIR"
 
 ### Section-3: Debug pipeline - deep-dive into WHY the failed jobs failed
 #
@@ -169,7 +169,7 @@ python3 $MainDir/CRON/graph/atbench_analyzer.py --log-dir "$LOGDIR"  --output-di
 # atbench_analyzer.py) for the actual raw job-output tree to read.
 
 DEBUG_RUN_DIR="$BASE_OUTDIR/$TODAY"
-DEBUG_OUT_DIR="$MainDir/CRON/Verification/LOGS/$TODAY/debug"
+DEBUG_OUT_DIR="$MainDir/Workflow/Verification/LOGS/$TODAY/debug"
 mkdir -p "$DEBUG_OUT_DIR"
 
 python3 "$MainDir/SCRIPTS/debug/job_debug_analyzer.py" \

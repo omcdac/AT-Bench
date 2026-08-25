@@ -16,11 +16,11 @@
 # LOGS/NAMD_Summary.txt (was tee -a'd on every run, forever, with a dead
 # "archive to records/" step that never fired since records/ never
 # existed). The summary block below is now just echo'd to stdout; the
-# caller (CRON/Verification/NAMD.sh or atVerify.sh) already captures full
+# caller (Workflow/Verification/NAMD.sh or atVerify.sh) already captures full
 # stdout into that run's own dated log file, so a second copy added
 # nothing but unbounded growth. The results CSV now lands under a dated
 # subfolder (LOGS/namd-logs/<DDMonthYYYY>/) when $TODAY is set by the
-# CRON wrapper, falling back to the flat path for manual atVerify.sh runs.
+# calling wrapper, falling back to the flat path for manual atVerify.sh runs.
 # =============================================================================
 
 
@@ -28,7 +28,7 @@
 job_ids_file="$OUTDIR/NAMD/NAMD_JobIDs.txt"
 
 ## For CSV file results
-# Define the CSV file (dated subfolder when the CRON wrapper sets $TODAY,
+# Define the CSV file (dated subfolder when the calling wrapper sets $TODAY,
 # flat path for manual atVerify.sh runs where $TODAY is unset)
 if [ -n "$TODAY" ]; then
     mkdir -p "$MainDir/LOGS/namd-logs/$TODAY"

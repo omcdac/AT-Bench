@@ -14,7 +14,7 @@ export TotalApps=1  #
 export NumberOfNodesPerJob=11
 export NumberOfCoresPerNode=48
 # Partition/reservation/job-count: use the value exported by
-# CRON/Jobsubmission/run-jobsubmission.sh if present (its CONFIGURATION
+# Workflow/Jobsubmission/run-jobsubmission.sh if present (its CONFIGURATION
 # block), else fall back to these defaults - keeps this script runnable
 # standalone (e.g. via the interactive JobSubmission.sh menu).
 export JobPartition="${WRF_PARTITION:-cpu}"

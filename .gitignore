@@ -4,16 +4,16 @@
 # run. See README.md for the download/restore instructions.
 SRC/
 
-# Nightly cron output: verification/submission logs, per-date node lists,
-# debug reports, generated charts. Regenerated fresh on every run, grows
-# without bound, and isn't needed to run the setup on a new system -- not
-# source code, so not version-controlled. Back these up separately (outside
-# git) if historical run data itself needs preserving.
+# Run output: verification/submission logs, per-date node lists, debug
+# reports, generated charts. Regenerated fresh on every run, grows without
+# bound, and isn't needed to run the setup on a new system -- not source
+# code, so not version-controlled. Back these up separately (outside git)
+# if historical run data itself needs preserving.
 LOGS/
-CRON/Verification/LOGS/
-CRON/Verification/cron-job-verification-logs/
-CRON/Jobsubmission/cron-job-submission-logs/
-CRON/graph/*.png
+Workflow/Verification/LOGS/
+Workflow/Verification/cron-job-verification-logs/
+Workflow/Jobsubmission/cron-job-submission-logs/
+Workflow/graph/*.png
 
 # Per-run verification state files: each verify-results.sh rm's and
 # regenerates these at the start of every run (see e.g.

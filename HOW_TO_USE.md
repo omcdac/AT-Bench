@@ -12,11 +12,11 @@ repository layout and cluster-specific setup.
 
 The pipeline consists of two scripts, run directly whenever needed:
 
-    <MainDir>/CRON/Jobsubmission/run-jobsubmission.sh
+    <MainDir>/Workflow/Jobsubmission/run-jobsubmission.sh
         Submits GROMACS, NAMD, OpenFOAM, and WRF jobs, using the job
         counts and reservation/partition set in its CONFIGURATION block.
 
-    <MainDir>/CRON/Verification/run-verification.sh
+    <MainDir>/Workflow/Verification/run-verification.sh
         Verifies the results of a completed submission run, builds
         cluster-wide success/slow/failed node lists, and runs the debug
         analyzer.
@@ -32,16 +32,16 @@ the deployment (an example schedule is given in README).
 
 For a given run date DDMonthYYYY (for example, 25August2026):
 
-  CRON/Verification/LOGS/<date>/nodes/
+  Workflow/Verification/LOGS/<date>/nodes/
       Success/slow/failed node lists, per application and combined
       cluster-wide, as plain comma-separated hostnames suitable for
       sbatch --nodelist= or --exclude=.
 
-  CRON/Verification/LOGS/<date>/debug/
+  Workflow/Verification/LOGS/<date>/debug/
       job_debug_analyzer.py output: error_report.txt,
       job_debug_records.csv, app_wise_error_breakdown.png.
 
-  CRON/Verification/LOGS/<date>/diagnose/
+  Workflow/Verification/LOGS/<date>/diagnose/
       diagnose-nodes.sh output (see section 4).
 
 
@@ -97,7 +97,7 @@ result, with the observed value alongside the expected standard.
 extract-nodes converts a verify-results.sh summary (its A.SUCCESSFULL
 JOBS / B.SLOW JOBS / C.INCOMPLETE JOBS sections) into plain
 comma-separated node lists. It is invoked automatically from each
-application's CRON/Verification/<APP>.sh wrapper, and can also be run
+application's Workflow/Verification/<APP>.sh wrapper, and can also be run
 directly against any summary file:
 
     <MainDir>/SCRIPTS/extract-nodes /path/to/some-verify-output.txt /path/to/output-dir
